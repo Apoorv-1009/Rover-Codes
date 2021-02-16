@@ -55,7 +55,7 @@ void GPIO_Initialize()
 	RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN; 
 	RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;   //Enable Alternate Function
 	
-	          //CAN PINS SETUP:
+				//CAN PINS SETUP:
 	//PA12 Setup: (Tx)
 	GPIOA->CRH |= GPIO_CRH_MODE12;   //OUTPUT Mode (11)
 	GPIOA->CRH |= GPIO_CRH_CNF12_1;   //AF Output Push-Pull (10)
@@ -66,7 +66,7 @@ void GPIO_Initialize()
 	GPIOA->CRH &= ~(GPIO_CRH_CNF11_1);   //Floating Input (reset state) (01)  
 	GPIOA->CRH |= (GPIO_CRH_CNF11_0);
 	
-						//UART PINS SETUP:
+				//UART PINS SETUP:
 	//PA9 Setup: (Tx)
 	GPIOA->CRH |= GPIO_CRH_MODE9;   //OUTPUT Mode (11)
 	GPIOA->CRH |= GPIO_CRH_CNF9_1;   //AF Output Push-Pull (10)
@@ -96,7 +96,7 @@ void GPIO_Initialize()
 	GPIOB->CRL |= GPIO_CRL_CNF7_1;   //AF Output Push-Pull (10)
 	GPIOB->CRL &= ~(GPIO_CRL_CNF7_0);
 	
-						//MAST CAM 1 PINS:
+				//MAST CAM 1 PINS:
 	//PC14 Setup: (DIR)
 	GPIOA->CRH |= GPIO_CRH_MODE14;   //OUTPUT Mode (11)
 	GPIOA->CRH &= ~(GPIO_CRH_CNF14);   //Output Push-Pull (00)
@@ -116,7 +116,7 @@ void GPIO_Initialize()
 	GPIOB->CRH |= GPIO_CRH_CNF9_1;   //AF Output Push-Pull (10)
 	GPIOB->CRH &= ~(GPIO_CRH_CNF9_0);
 	
-						//ARM PINS:
+				//ARM PINS:
 	//1)
 	//PB3 Setup: (DIR)
 	GPIOB->CRL |= GPIO_CRL_MODE3;   //OUTPUT Mode (11)
@@ -202,7 +202,7 @@ void Timer_Initialize()
 	Timer 4: PB6(C1), PB7(C2), PB8(C3), PB9(C4)	
 	*/
 	
-							//TIMER 2 SETUP:
+				//TIMER 2 SETUP:
 	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;   //Timer 2 Enable
 	TIM2->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;   //Enable Channel 1,2,3,4 as OUTPUT
 	TIM2->CR1 |= TIM_CR1_ARPE;   //Enable Auto Re-Load Preload (ARPE)
@@ -233,7 +233,7 @@ void Timer_Initialize()
 	TIM2->CR1 |= TIM_CR1_CEN;   //Start Counting
 	
 	
-							//TIMER 3 SETUP:
+				//TIMER 3 SETUP:
 	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;   //Timer 3 Enable
 	TIM3->CCER |= TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;   //Enable Channel 1,2,3,4 as OUTPUT
 	TIM3->CR1 |= TIM_CR1_ARPE;   //Enable Auto Re-Load Preload (ARPE)
@@ -260,7 +260,7 @@ void Timer_Initialize()
 	TIM3->CR1 |= TIM_CR1_CEN;   //Start Counting
 	
 	
-						//TIMER 4 SETUP:
+				//TIMER 4 SETUP:
 	RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;   //Timer 4 Enable
 	TIM4->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;   //Enable Channel 1,2,3,4 as OUTPUT
 	TIM4->CR1 |= TIM_CR1_ARPE;   //Enable Auto Re-Load Preload (ARPE)
@@ -293,7 +293,7 @@ void Timer_Initialize()
 
 void ADC_Initialize()
 {
-    //PA6(Ch6)
+    	//PA6(Ch6)
 	RCC->CFGR |= RCC_CFGR_ADCPRE_DIV6;   //f/6 = 72/6 = 12 Mhz
 	RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;   //Enable ADC1 Clock
 
@@ -317,7 +317,7 @@ void ADC_Initialize()
 
 void UART_Initilaize()
 {
-    //PA9(Tx) PA10(Rx)
+    	//PA10(Rx)
 	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;   //UART1 Enable, Clk freq = 72Mhz
 	//Setting up Baud Rate:
 	USART1->BRR |= 0x0B64; 			//Gives 9600 Baud Rate
