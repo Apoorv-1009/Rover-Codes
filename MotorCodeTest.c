@@ -11,8 +11,11 @@
  PWM:  PB6            PB7
  */
 
-#include "stm32f103xe.h"
+#include "stm32f1xx.h"
 #include "stdlib.h"
+#include <stdarg.h>
+#include <string.h>
+#include <stdio.h>
 
 void GPIO_Initialize()
 {
@@ -43,9 +46,8 @@ void GPIO_Initialize()
 
 	//PA10 Setup: (UART Rx)
 	GPIOA->CRH &= ~(GPIO_CRH_MODE10);   //INPUT Mode (00)
-	GPIOA->CRH |= GPIO_CRH_CNF10_1;   //Input with pull-up/pull-down (10)  
+	GPIOA->CRH |= GPIO_CRH_CNF10_1;   //Input with pull-up/pull-down (10)
 	GPIOA->CRH &= ~(GPIO_CRH_CNF10_0);
-
 }
 
 void Timer_Initialize()
@@ -64,8 +66,8 @@ void Timer_Initialize()
 	TIM4->CCMR1 |= (TIM_CCMR1_OC2M_2) | (TIM_CCMR1_OC2M_1);
 	TIM4->CCMR1 &= ~(TIM_CCMR1_OC2M_0);
 
-	TIM4->PSC = 1; //freq/1 = 72 Mhz
-	TIM4->ARR = 4095;   //16 Bit value
+	TIM4->PSC = 1;   //freq/1 = 8 Mhz
+	TIM4->ARR = 8000;
 	TIM4->CCR1 = 0;
 	TIM4->CCR2 = 0;
 
@@ -73,9 +75,26 @@ void Timer_Initialize()
 	TIM4->CR1 |= TIM_CR1_CEN;   //Start Counting
 }
 
+void UART_Initilaize()
+{
+    	//PA9(Tx) PA10(Rx)
+	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;   //UART1 Enable, Clk freq = 8Mhz
+	//Setting up Baud Rate:
+	USART1->BRR |= 4<<4 | 5<<0;     			//Gives 115200 Baud Rate(approx.) Register Value = (8MHz)/(16 * Reqd. Baud Rate) = 4.5
+	//              Rx Enable      Tx Enable      UART Enable
+	USART1->CR1 |= (USART_CR1_RE | USART_CR1_TE | USART_CR1_UE);
+}
+
+uint8_t getuval()   //Reads UART Values
+{
+	uint8_t data;
+	while(!(USART1->SR & USART_SR_RXNE));   //Check Status Register if all is Recieved
+	data = USART1->DR;
+	return data;
+}
 
 //        |Left    Right| |      Left PWM       |  |      Right PWM     | |  Values  |  | Gear |
-void Drive(int DL, int DR, int oct0, int a, int b, int oct1, int p, int q,int X, int Y, int gear)
+void Drive(int DL, int DR, int oct0, int a, int b, int oct1, int p, int q,int X, int Y, float gear)
 {
 	if (DL == 1)
 		GPIOA->BSRR |= 1 << 4;   //Turn on LEFT LED
@@ -87,38 +106,30 @@ void Drive(int DL, int DR, int oct0, int a, int b, int oct1, int p, int q,int X,
 	else
 		GPIOA->BRR |= 1 << 5;   //Turn off RIGHT LED
 
-	TIM4->CCR1 = (uint32_t) abs(4095 * oct0 - abs(X * a) - abs(Y * b)) * (gear/10.0);   //Left PWM
-	TIM4->CCR2 = (uint32_t) abs(4095 * oct1 - abs(X * p) - abs(Y * q)) * (gear/10.0);   //Right PWM
-
-	//delay_ms(5);
+	TIM4->CCR1 = (uint32_t) (abs(8000 * oct0 - abs(X * a) - abs(Y * b)) * (gear*0.1));   //Left PWM
+	TIM4->CCR2 = (uint32_t) (abs(8000 * oct1 - abs(X * p) - abs(Y * q)) * (gear*0.1));   //Right PWM
 }
 
-int mapp(float k, float l, float h, float L, float H)
+void MotorCode(int x, int y, float g)
 {
-	return ((k - l) / (h - l)) * (H - L) + L;
-}
-
-void MotorCode(int x, int y, int g)
-{
-
-	if (abs(x) < 20 && abs(y) < 20)   //No Motion
+	if (abs(x) < 100 && abs(y) < 100)   //No Motion
 		Drive(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, g);
 
-	else if (abs(x) < 10 && y < 0)   //Full Forward
+	else if (abs(x) < 100 && y < 0)   //Full Forward
 		Drive(1, 1, 0, 0, 1, 0, 0, 1, x, y, g);
 
-	else if (abs(x) < 10 && y > 0)   //Full Backward
+	else if (abs(x) < 100 && y > 0)   //Full Backward
 		Drive(0, 0, 0, 0, 1, 0, 0, 1, x, y, g);
 
-	else if (x < 0 && abs(y) <= 20)   //Spot Turn Left
+	else if (x < 0 && abs(y) <= 100)   //Spot Turn Left
 		Drive(0, 1, 0, 1, 0, 0, 1, 0, x, y, g);
 
-	else if (x > 0 && abs(y) <= 20)   //Spot Turn Right
+	else if (x > 0 && abs(y) <= 100)   //Spot Turn Right
 		Drive(1, 0, 0, 1, 0, 0, 1, 0, x, y, g);
 
 	else if (x > 0 && y < 0 && x >= abs(y))   //Octet 1
 	{
-		if (abs(x) > 4095 - abs(y))
+		if (abs(x) > 8000 - abs(y))
 			Drive(1, 0, 0, 1, 0, 1, 0, 1, x, y, g);
 		else
 			Drive(1, 0, 1, 0, 1, 0, 1, 0, x, y, g);
@@ -126,7 +137,7 @@ void MotorCode(int x, int y, int g)
 
 	else if (x > 0 && y < 0 && x < abs(y))   //Octet 2
 	{
-		if (abs(y) > 4095 - abs(x))
+		if (abs(y) > 8000 - abs(x))
 			Drive(1, 1, 0, 0, 1, 1, 1, 0, x, y, g);
 		else
 			Drive(1, 1, 1, 1, 0, 0, 0, 1, x, y, g);
@@ -134,7 +145,7 @@ void MotorCode(int x, int y, int g)
 
 	else if (x < 0 && y < 0 && abs(y) > abs(x))   //Octet 3
 	{
-		if (abs(y) > 4095 - abs(x))
+		if (abs(y) > 8000 - abs(x))
 			Drive(1, 1, 1, 1, 0, 0, 0, 1, x, y, g);
 		else
 			Drive(1, 1, 0, 0, 1, 1, 1, 0, x, y, g);
@@ -142,7 +153,7 @@ void MotorCode(int x, int y, int g)
 
 	else if (x < 0 && y < 0 && abs(x) >= abs(y))   //Octet 4
 	{
-		if (abs(x) > 4095 - abs(y))
+		if (abs(x) > 8000 - abs(y))
 			Drive(0, 1, 1, 0, 1, 0, 1, 0, x, y, g);
 		else
 			Drive(0, 1, 0, 1, 0, 1, 0, 1, x, y, g);
@@ -150,7 +161,7 @@ void MotorCode(int x, int y, int g)
 
 	else if (x < 0 && y > 0 && abs(x) > abs(y))   //Octet 5
 	{
-		if (abs(x) > 4095 - abs(y))
+		if (abs(x) > 8000 - abs(y))
 			Drive(0, 1, 0, 1, 0, 1, 0, 1, x, y, g);
 		else
 			Drive(0, 1, 1, 0, 1, 0, 1, 0, x, y, g);
@@ -158,7 +169,7 @@ void MotorCode(int x, int y, int g)
 
 	else if (x < 0 && y > 0 && abs(y) >= abs(x))   //Octet 6
 	{
-		if (abs(y) > 4095 - abs(x))
+		if (abs(y) > 8000 - abs(x))
 			Drive(0, 0, 0, 0, 1, 1, 1, 0, x, y, g);
 		else
 			Drive(0, 0, 1, 1, 0, 0, 0, 1, x, y, g);
@@ -166,7 +177,7 @@ void MotorCode(int x, int y, int g)
 
 	else if (x > 0 && y > 0 && abs(y) >= abs(x))   //Octet 7
 	{
-		if (abs(y) > 4095 - abs(x))
+		if (abs(y) > 8000 - abs(x))
 			Drive(0, 0, 1, 1, 0, 0, 0, 1, x, y, g);
 		else
 			Drive(0, 0, 0, 0, 1, 1, 1, 0, x, y, g);
@@ -174,75 +185,53 @@ void MotorCode(int x, int y, int g)
 
 	else if (x > 0 && y > 0 && abs(x) > abs(y))   //Octet 8
 	{
-		if (abs(x) > 4095 - abs(y))
+		if (abs(x) > 8000 - abs(y))
 			Drive(1, 0, 1, 0, 1, 0, 1, 0, x, y, g);
 		else
 			Drive(1, 0, 0, 1, 0, 1, 0, 1, x, y, g);
 	}
 
 	//Test Drive:
-	//Drive(1,1,0,1,0,0,0,1,x,y);
-}
-
-void UART_Initilaize()
-{
-  //PA9(Tx) PA10(Rx)
-	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;   //UART1 Enable, Clk freq = 72Mhz
-	//Setting up Baud Rate:
-	USART1->BRR |= 0x271; 			//Gives 115200 Baud Rate
-	//              Rx enable      UART Enable
-	USART1->CR1 |= (USART_CR1_RE | USART_CR1_UE);
-}
-
-uint8_t getuval()   //Reads UART Values
-{
-	uint8_t data;
-	while(!(USART1 ->SR & USART_SR_RXNE));   //Check Status Register if all is Recieved 
-	data = USART1->DR;
-	return data;
+	//Drive(1,1,0,1,0,0,0,1,x,y,g);
 }
 
 int main()
 {
-	//SysTick_Initialize();
 	GPIO_Initialize();
 	Timer_Initialize();
-   UART_Initilaize();
+    	UART_Initilaize();
 
-	/*
-	int x, y;
-  int trash;
-	int gear = 0.1;
-	*/
+	int x = 0, y = 0;
+    	int trash = 0;
+	float gear = 1.0;
 	while (1)
 	{
-        /*if(getuval() == 'm')
-        {
-            gear = (int) (getuval() - '0') + 1;
-
-            if(getuval() == 's')
-                x = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');
-
-            if(getuval() == 'f')
-                y = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');
-
-            trash = getuval();   //This is actually Mast CAM values but we're ignoring it for now
-        }
-		    else
-		    {
-			    trash = trash + 1 - 1;   //Bakchodi
-		    }
-
-        x = mapp(x, 0.0, 4095.0, 0.0, 16000.0);
-        y = mapp(y, 0.0, 4095.0, 16000.0, 0.0);
-		
-        MotorCode(x, y, gear);
-        */
-        if(getuval() == 'm')
-        {
-          GPIOA->BSRR = (1<<4);   
-        }
-        else
-          GPIOA->BRR = 1<<4;
+		//Read LAN2UART Values
+		if(getuval() == 'm')
+		{
+			gear = (int) ((getuval() - '0') + 1);   //Get gear value
+			if(getuval() == 's')
+			{
+				x = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');   //x value
+			}
+			if(getuval() == 'f')
+			{
+				y = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');   //y value
+			}
+			trash = getuval();   //This is actually Mast CAM values but we're ignoring it for now
+		}
+		else
+		{
+			trash = trash + 1 - 1;   //Bakchodi
+		 }
+		x = x - 8000;  //Adjust x-axis
+		y = 8000 - y;  //Adjust y-axis
+		if(abs(x) < 1000)
+			x = 0;
+		if(abs(y) < 1000)
+			y = 0;
+		MotorCode(x, y, gear);   //Run MotorCode
 	}
 }
+
+
