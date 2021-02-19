@@ -4,8 +4,7 @@
  Phone Joystick->Switcher->(LAN2UART)->STMF1
  Setup:
  PWM LEDs: PB6(Ch1), PB7(Ch2)
- UART: PA9(Tx), PA10(Rx)
- x->PA1   y->PA2
+ UART: PA10(Rx)
        Left           Right
  LED:  PA4            PA5
  PWM:  PB6            PB7
@@ -81,8 +80,8 @@ void UART_Initilaize()
 	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;   //UART1 Enable, Clk freq = 8Mhz
 	//Setting up Baud Rate:
 	USART1->BRR |= 4<<4 | 5<<0;     			//Gives 115200 Baud Rate(approx.) Register Value = (8MHz)/(16 * Reqd. Baud Rate) = 4.5
-	//              Rx Enable      Tx Enable      UART Enable
-	USART1->CR1 |= (USART_CR1_RE | USART_CR1_TE | USART_CR1_UE);
+	//              Rx Enable      UART Enable
+	USART1->CR1 |= (USART_CR1_RE | USART_CR1_UE);
 }
 
 uint8_t getuval()   //Reads UART Values
