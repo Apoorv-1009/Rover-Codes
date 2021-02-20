@@ -129,8 +129,15 @@ void GPIO_Initialize()
 	
 	//2)
 	//PB4 Setup: (DIR)
+	/*PB4 is by default initialized as a JTRST Pin and thus has to be disabled.
+	By default the pin is at a high state and doesnt function as a normal GPIO
+	Read AFIO debug configeration in the reference manual for more data on how to disable JTRST*/
+	AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_2;
+	AFIO->MAPR &= ~(AFIO_MAPR_SWJ_CFG_1 | AFIO_MAPR_SWJ_CFG_0);   // JTRST & SWJ Disable (100)
 	GPIOB->CRL |= GPIO_CRL_MODE4;   //OUTPUT Mode (11)
 	GPIOB->CRL &= ~(GPIO_CRL_CNF4);   //Output Push-Pull (00)
+	GPIOB->BRR |= 1 << 4;   //Mandatory disable to turn it off initially.
+	//Now PB4 can be used as a normal GPIO
 	
 	//PA1 Setup: (PWM)
 	GPIOA->CRL |= GPIO_CRL_MODE1;   //OUTPUT Mode (11)
