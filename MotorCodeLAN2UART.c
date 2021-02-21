@@ -79,7 +79,7 @@ void UART_Initilaize()
     	//PA9(Tx) PA10(Rx)
 	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;   //UART1 Enable, Clk freq = 8Mhz
 	//Setting up Baud Rate:
-	USART1->BRR |= 4<<4 | 5<<0;     			//Gives 115200 Baud Rate(approx.) Register Value = (8MHz)/(16 * Reqd. Baud Rate) = 4.5
+	USART1->BRR |= 4<<4 | 5<<0;   //Gives 115200 Baud Rate(approx.) Register Value = (8MHz)/(16 * Reqd. Baud Rate) = 4.5
 	//              Rx Enable      UART Enable
 	USART1->CR1 |= (USART_CR1_RE | USART_CR1_UE);
 }
