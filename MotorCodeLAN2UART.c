@@ -8,6 +8,7 @@
        Left           Right
  LED:  PA4            PA5
  PWM:  PB6            PB7
+ Same code was later run with our GUI, values sent from right joystick of the DS4
  */
 
 #include "stm32f1xx.h"
