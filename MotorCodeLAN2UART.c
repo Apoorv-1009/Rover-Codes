@@ -1,5 +1,5 @@
 /*
-  Code implements Motor Code on LEDs thru PWM with Timer4, by reading Joystick values
+ Code implements Motor Code on LEDs thru PWM with Timer4, by reading Joystick values
  from a phone via LAN2UART.
  Phone Joystick->Switcher->(LAN2UART)->STMF1
  Setup:
@@ -85,7 +85,7 @@ void Timer_Initialize()
 
 void UART_Initilaize()
 {
-    //PA9(Tx) PA10(Rx)
+    	//PA9(Tx) PA10(Rx)
 	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;   //UART1 Enable, Clk freq = 8Mhz
 	//Setting up Baud Rate:
 	USART1->BRR |= 4<<4 | 5<<0;   //Gives 115200 Baud Rate(approx.) Register Value = (8MHz)/(16 * Reqd. Baud Rate) = 4.5
@@ -168,42 +168,42 @@ int main()
 {
 	GPIO_Initialize();
 	Timer_Initialize();
-  UART_Initilaize();
-
+  	UART_Initilaize();
+	
 	int x = 0, y = 0;
-  int trash = 0;
+  	int trash = 0;
 	float gear = 1.0;
 	while (1)
-  {
-    //Read LAN2UART Values
-    if(getuval() == 'm')
-    {
-      gear = (int) ((getuval() - '0') + 1);   //Get gear value
-      if(getuval() == 's')
-      {
-        x = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');   //x value
-      }
-      if(getuval() == 'f')
-      {
-        y = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');   //y value
-      }
-      trash = getuval();   //This is actually Mast CAM values but we're ignoring it for now
-    }
-    else
-    {
-      trash = trash + 1 - 1;   //Bakchodi
-    }
-    x = x - 8000;
-    y = y - 8000;
+  	{
+		//Read LAN2UART Values
+		if(getuval() == 'm')
+		{
+			gear = (int) ((getuval() - '0') + 1);   //Get gear value
+			if(getuval() == 's')
+			{
+				x = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');   //x value
+			}
+			if(getuval() == 'f')
+			{
+				y = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');   //y value
+			}
+			trash = getuval();   //This is actually Mast CAM values but we're ignoring it for now
+		}
+		else
+		{
+			trash = trash + 1 - 1;   //Bakchodi
+		}
+		x = x - 8000;
+		y = y - 8000;
 
-    if(abs(x) < 500)
-      x = 0;
-    if(abs(y) < 500)
-      y = 0;
+		if(abs(x) < 500)
+			x = 0;
+		if(abs(y) < 500)
+			y = 0;
 
-    MotorCode(x, y, gear);   //Run MotorCode
+		MotorCode(x, y, gear);   //Run MotorCode
 
-	}
+		}
 }
 /**/
 
