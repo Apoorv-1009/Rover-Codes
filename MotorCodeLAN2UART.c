@@ -179,29 +179,29 @@ int main()
         	if(getuval() == 'm')
         	{
             		gear = (int) ((getuval() - '0') + 1);   //Get gear value
-            	if(getuval() == 's')
+            		if(getuval() == 's')
+			{
+                		x = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');   //x value
+			}
+			if(getuval() == 'f')
+			{
+                		y = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');   //y value
+			}
+			trash = getuval();   //This is actually Mast CAM values but we're ignoring it for now
+        	}
+		else
 		{
-                	x = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');   //x value
+			trash = trash + 1 - 1;   //Bakchodi
 		}
-		if(getuval() == 'f')
-		{
-                	y = (getuval()-'0')*10000 + (getuval()-'0')*1000 + (getuval()-'0')*100 + (getuval()-'0')*10 + (getuval()-'0');   //y value
-		}
-		trash = getuval();   //This is actually Mast CAM values but we're ignoring it for now
-        }
-	else
-	{
-		trash = trash + 1 - 1;   //Bakchodi
-	}
-        x = x - 8000;
-        y = y - 8000;
+        	x = x - 8000;
+        	y = y - 8000;
 
-        if(abs(x) < 500)
-        	x = 0;
-        if(abs(y) < 500)
-        	y = 0;
+        	if(abs(x) < 500)
+        		x = 0;
+        	if(abs(y) < 500)
+        		y = 0;
 
-        MotorCode(x, y, gear);   //Run MotorCode
+        	MotorCode(x, y, gear);   //Run MotorCode
 
 	}
 }
