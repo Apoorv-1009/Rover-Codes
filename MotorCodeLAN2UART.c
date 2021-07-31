@@ -191,7 +191,7 @@ int main()
 		}
 		else
 		{
-			trash = trash + 1 - 1;   //Bakchodi
+			trash = trash + 1 - 1;   //Random values
 		}
 		x = x - 8000;
 		y = y - 8000;
