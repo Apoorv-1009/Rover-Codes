@@ -18,7 +18,7 @@ Arm Pins:
 	 Timer 3: PA7(C2), PB0(C3), PB1(C4)
 	 Timer 4: PB6(C1), PB7(C2), PB8(C3), PB9(C4)
 	 
-!NOTE! PA8 is an unused GPIO Pin on the PCB kyuki Jugal hagg diya bc
+!NOTE! PA8 is an unused GPIO Pin on the PCB 
 GPIO Initialize completed
 TIMER Initialize completed
 ADC Initialize completed
